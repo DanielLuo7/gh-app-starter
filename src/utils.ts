@@ -2,7 +2,7 @@ import { Octokit } from 'octokit';
 import { createAppAuth } from '@octokit/auth-app';
 
 interface PullRequestDiff {
-  diff: string;
+  diff: any;
   files: Array<{
     filename: string;
     additions: number;
@@ -62,7 +62,7 @@ export const getPullRequestDiff = async (
   });
 
   return {
-    diff: diff as string,
+    diff: diff,
     files: files.map((file: PullRequestFile) => ({
       filename: file.filename,
       additions: file.additions,
