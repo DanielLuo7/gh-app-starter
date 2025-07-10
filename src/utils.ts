@@ -113,3 +113,39 @@ export const postReviewWithComments = async (
     comments,
   });
 };
+
+export const createFileComment = async (
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  pull_number: number,
+  path: string,
+  body: string,
+  line: number,
+) => {
+  await octokit.rest.pulls.createReviewComment({
+    owner,
+    repo,
+    pull_number,
+    body,
+    commit_id: (await octokit.rest.pulls.get({ owner, repo, pull_number })).data.head.sha,
+    path,
+    line,
+    side: "RIGHT",
+  });
+};
+
+export const createPRComment = async (
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  issue_number: number,
+  body: string
+) => {
+  await octokit.rest.issues.createComment({
+    owner,
+    repo,
+    issue_number,
+    body,
+  })
+}

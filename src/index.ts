@@ -18,6 +18,7 @@ app.get('/', (req, res) => {
 // Webhook endpoint
 app.post('/webhook', async (req, res) => {
   try {
+    console.log(req.body)
     await handleWebhook(req.body);
     res.json({ message: 'Webhook processed successfully' });
   } catch (error) {
