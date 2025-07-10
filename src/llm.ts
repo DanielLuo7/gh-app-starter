@@ -1,6 +1,6 @@
 import { OpenAI } from "openai"
 
-const openai = new OpenAI({ apiKey: process.env.OPEN_AI_KEY});
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY});
 const SYSTEM_CONTENT = "You are a code reviewer who checks file diffs for bugs and summarizes file changes";
 
 // returns an array of {line: bug description} objects

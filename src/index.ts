@@ -1,8 +1,8 @@
 import express from 'express';
 import dotenv from 'dotenv';
+dotenv.config();
 import { handleWebhook } from './handlers.js';
 
-dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -18,6 +18,7 @@ app.get('/', (req, res) => {
 // Webhook endpoint
 app.post('/webhook', async (req, res) => {
   try {
+    console.log("new start look here");
     console.log(req.body)
     await handleWebhook(req.body);
     res.json({ message: 'Webhook processed successfully' });

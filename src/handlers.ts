@@ -1,23 +1,46 @@
 import { createPRComment, createFileComment, getOctokit, getPullRequestDiff } from './utils.js';
 import { checkForBugs, generateSummary } from "./llm.js"
+import simpleGit from "simple-git";
 
+const git = simpleGit();
 const FIRST_LINE = 1;
+const REVIEW = new Set<string>(["opened", "reopened"])
 
 export const handleWebhook = async (payload: any) => {
   // console.log('Received webhook:', payload);
+
+  // exit if we get a comment
+  if (!REVIEW.has(payload.action)) {
+    console.log("New event is not reviewable. Exiting");
+    return;
+  }
+  // if (payload.action === COMMENT) {
+  //   console.log("New event is a comment. Exiting.");
+  //   return;
+  // }
+
+  // if (payload.action === CLOSED) {
+  //   console.log("Pull request was closed. Exiting.");
+  //   return;
+  // }
+  // console.log("we should be moving forward");
+
   const octokit = await getOctokit(payload.installation.id);
   const pullNumber = payload.pull_request.number;
   const owner = payload.repository.owner.login;
   const repo = payload.repository.name
+  console.log(pullNumber, owner, repo);
 
   // add handling here, see utils.ts
   // get diff and files
   const { diff, files } = await getPullRequestDiff(octokit, owner, repo, pullNumber);
+  console.log("diff here", diff)
   let pullRequestSummary = "";
   // goal is to use llm to generate bugs and summaries for each file
   for (const file of files) {
     const filename = file.filename;
-    const fileDiff = getFileDiffFromRaw(diff, filename);
+    const fileDiff = diff;
+    // const fileDiff = getFileDiffFromRaw(diff, filename);
     // if file has no diff either continue or error handle?
     if (!fileDiff) {
       console.error(`We have no diff for ${filename}. Going to continue on the rest`);
@@ -32,8 +55,9 @@ export const handleWebhook = async (payload: any) => {
 
     // have it start with something like ## Summary for filename...
     const summary = await generateSummary(filename, fileDiff);
+    console.log("summary", summary)
     // comment summary
-    await createFileComment(octokit, owner, repo, pullNumber, filename, summary, FIRST_LINE);
+    // await createFileComment(octokit, owner, repo, pullNumber, filename, summary, FIRST_LINE);
 
     pullRequestSummary += `### Summary of changes for ${filename}\n${summary}\n\n`;
   }
@@ -42,6 +66,7 @@ export const handleWebhook = async (payload: any) => {
 
 // should return the matched diff if there is else null
 function getFileDiffFromRaw(diff: any, filename: string): string | null {
+  console.log("we're getting the file diff", diff)
   const pattern = new RegExp(`^diff --git a/${filename.replace(/\./g, '\\.')}.*?(?=^diff --git|\\Z)`, 'gms');
   const match = diff.match(pattern);
   return match ? match[0] : null;
